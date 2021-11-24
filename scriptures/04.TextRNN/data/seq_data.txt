@@ -1,0 +1,10 @@
+make
+need
+coal
+word
+love
+hate
+live
+home
+hash
+star
