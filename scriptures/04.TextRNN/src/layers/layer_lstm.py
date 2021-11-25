@@ -8,11 +8,11 @@ class LayerLSTM(LayerBase):
         self.lstm = nn.LSTM(n_class, args.n_hidden)
         self.n_hidden = args.n_hidden
 
-    def forward(self, X, args):
+    def forward(self, X):
         input = X.transpose(0, 1)
 
-        hidden_state = torch.zeros(1, len(X), args.n_hidden)
-        cell_state = torch.zeros(1, len(X), args.n_hidden)
+        hidden_state = torch.zeros(1, len(X), self.n_hidden)
+        cell_state = torch.zeros(1, len(X), self.n_hidden)
 
         outputs, (_, _) = self.lstm(input, (hidden_state, cell_state))
         outputs = outputs[-1]

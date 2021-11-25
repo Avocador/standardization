@@ -58,7 +58,7 @@ if __name__ == '__main__':
         for epoch in range(1000):
             optimizer.zero_grad()
 
-            output = model(input_batch, args)
+            output = model(input_batch)
             loss = criterion(output, target_batch)
             if (epoch + 1) % 100 == 0:
                 print('Epoch:', '%04d' % (epoch + 1), 'cost =', '{:.6f}'.format(loss))
@@ -68,7 +68,7 @@ if __name__ == '__main__':
 
         inputs = [sen[:3] for sen in seq_data]
 
-        predict = model(input_batch, args).data.max(1, keepdim=True)[1]
+        predict = model(input_batch).data.max(1, keepdim=True)[1]
         print(inputs, '->', [number_dict[n.item()] for n in predict.squeeze()])
 
 
