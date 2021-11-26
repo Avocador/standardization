@@ -1,5 +1,6 @@
 from src.models.textrnn import TextRNN
 from src.models.textlstm import TextLSTM
+from src.models.textbilstm import TextBiLSTM
 
 class ModelFactory():
     @staticmethod
@@ -8,5 +9,7 @@ class ModelFactory():
             return TextRNN(args, n_class)
         elif args.model == 'textlstm':
             return TextLSTM(args, n_class)
+        elif args.model == 'textbilstm':
+            return TextBiLSTM(args, n_class)
 
 

@@ -22,3 +22,14 @@ def make_batch_lstm(seq_data, word_dict, n_class):
         input_batch.append(np.eye(n_class)[input])
         target_batch.append(target)
     return input_batch, target_batch
+
+def make_batch_bilistm(sentence, word_dict, max_len, n_class):
+    input_batch, target_batch = [], []
+    words = sentence.split()
+    for i, word in enumerate(words[:-1]):
+        input = [word_dict[n] for n in words[:(i+1)]]
+        input = input + [0] * (max_len - len(input))
+        target = word_dict[words[i+1]]
+        input_batch.append(np.eye(n_class)[input])
+        target_batch.append(target)
+    return input_batch, target_batch
