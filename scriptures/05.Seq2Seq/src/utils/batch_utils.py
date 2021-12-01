@@ -28,3 +28,12 @@ def make_changeword_test_batch(input_word, n_step, n_class, num_dic):
     output_batch = torch.FloatTensor(np.eye(n_class)[output]).unsqueeze(0)
 
     return input_batch, output_batch
+
+
+def make_translate_batch(sentences, word_dict, n_class):
+    input_batch = torch.FloatTensor([np.eye(n_class)[[word_dict[n] for n in sentences[0].split()]]])
+    output_batch = torch.FloatTensor([np.eye(n_class)[[word_dict[n] for n in sentences[1].split()]]])
+    target_batch = torch.LongTensor([[word_dict[n] for n in sentences[2].split()]])
+
+    return input_batch, output_batch, target_batch
+
