@@ -1,5 +1,6 @@
 import argparse
 
+import numpy as np
 import torch
 import torch.nn as nn
 import torch.optim as optim
@@ -12,11 +13,13 @@ from src.utils.batch_utils import *
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
-    parser.add_argument('--data-io', type=str, default='Translate', choices=['ChangeWord', 'Translate'])
-    parser.add_argument('--data-path', type=str, default='./data/translate_sentences.txt', choices=['./data/changeword_sentences.txt', './data/translate_sentences.txt'])
+    parser.add_argument('--data-io', type=str, default='Sentiment', choices=['ChangeWord', 'Translate', 'Sentiment'])
+    parser.add_argument('--data-path', type=str, default='./data/sentiment_sentences.txt', choices=['./data/changeword_sentences.txt', './data/translate_sentences.txt', './data/sentiment_sentences.txt'])
     parser.add_argument('--n-step', type=int, default=5)
-    parser.add_argument('--model', type=str, default='TranslateSeqAtten', choices=['ChangeWordSeq', 'TranslateSeqAtten'])
-    parser.add_argument('--n-hidden', type=int, default=128)
+    parser.add_argument('--model', type=str, default='SentimentBiLSTMSeqAtten', choices=['ChangeWordSeq', 'TranslateSeqAtten', 'SentimentBiLSTMSeqAtten'])
+    parser.add_argument('--n-hidden', type=int, default=5, choices=[5, 128], help='ChangeWord & Translate: 128, Sentiment: 5')
+    parser.add_argument('--embedding-dim', type=int, default=2, help='Sentiment: 2')
+    parser.add_argument('--num-classes', type=int, default=2, help='Sentiment: 2')
 
 
 
@@ -94,14 +97,41 @@ if __name__ == '__main__':
             optimizer.step()
 
 
-    # Test
-    test_batch = [np.eye(n_class)[[word_dict[n] for n in 'SPPPP']]]
-    test_batch = torch.FloatTensor(test_batch)
-    predict, trained_att = model(input_batch, hidden, test_batch)
-    predict = predict.data.max(1, keepdim=True)[1]
-    print(sentences[0], '->', [number_dict[n.item()] for n in predict.squeeze()])
+        # Test
+        test_batch = [np.eye(n_class)[[word_dict[n] for n in 'SPPPP']]]
+        test_batch = torch.FloatTensor(test_batch)
+        predict, trained_att = model(input_batch, hidden, test_batch)
+        predict = predict.data.max(1, keepdim=True)[1]
+        print(sentences[0], '->', [number_dict[n.item()] for n in predict.squeeze()])
 
+    elif args.model == 'SentimentBiLSTMSeqAtten':
+        inputs, targets = data_io.processing()
+        sentences, labels, word_dict, vocab_size = data_io.sentences, data_io.labels, data_io.word_dict, data_io.vocab_size
 
+        model = ModelFactory.create(args, vocab_size)
 
+        criterion = nn.CrossEntropyLoss()
+        optimizer = optim.Adam(model.parameters(), lr=0.001)
 
+        # Train
+        for epoch in range(5000):
+            optimizer.zero_grad()
+            output, attention = model(inputs)
+            loss = criterion(output, targets)
+            if (epoch + 1) % 1000 == 0:
+                print('Epoch:', '%04d' % (epoch + 1), 'cost =', '{:.6f}'.format(loss))
 
+            loss.backward()
+            optimizer.step()
+
+        # Test: Predict
+        test_text = 'sorry hate you'
+        tests = [np.asarray([word_dict[n] for n in test_text.split()])]
+        test_batch = torch.LongTensor(tests)
+
+        predict, _ = model(test_batch)
+        predict = predict.data.max(1, keepdim=True)[1]
+        if predict[0][0] == 0:
+            print(test_text, 'is Bad Mean...')
+        else:
+            print(test_text, 'is Good Mean!')
